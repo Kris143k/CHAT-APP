@@ -67,6 +67,6 @@ A feature-rich realtime chat application built with Node.js, Express, and Socket
 
 ## 🚀 Live Demo
 
-👉 
+👉 https://chat-app-qv4l.onrender.com/
 
 ## Happy Chatting! 😊
