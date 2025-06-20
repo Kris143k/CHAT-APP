@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Chat</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Join Chat Room</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Your Name</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your name" maxlength="20">
+            </div>
+            <div class="form-group">
+                <label for="roomCode">Room Code</label>
+                <input type="text" id="roomCode" name="roomCode" required placeholder="Enter room code" maxlength="20">
+            </div>
+            <button type="submit" class="submit-btn">Join Chat</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const roomCode = document.getElementById('roomCode').value.trim();
+            
+            if (username && roomCode) {
+                window.location.href = `/chat?username=${encodeURIComponent(username)}&room=${encodeURIComponent(roomCode)}`;
+            }
+        });
+    </script>
+</body>
+</html>

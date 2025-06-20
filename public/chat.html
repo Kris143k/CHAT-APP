@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat APP</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>Chat Room: <span id="roomName"></span></h1>
+            <div class="user-list">
+                <h3>Online Users (<span id="userCount">1</span>)</h3>
+                <ul id="users"></ul>
+            </div>
+        </header>
+
+        <main class="chat-main">
+            <div id="messages" class="messages"></div>
+            
+            <div class="message-input">
+                <input type="text" name="message" id="message" placeholder="Type your message..." maxlength="200">
+                <button id="sendBtn">Send</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Get username and room from URL
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const username = urlParams.get('username');
+        const room = urlParams.get('room');
+        
+        if (!username || !room) {
+            window.location.href = '/';
+        }
+
+        document.getElementById('roomName').textContent = room;
+
+        // Connect to Socket.io
+        const socket = io({
+            query: {
+                username,
+                room
+            }
+        });
+
+        // DOM elements
+        const sendBtn = document.getElementById('sendBtn');
+        const messageInput = document.getElementById('message');
+        const messagesContainer = document.getElementById('messages');
+        const usersList = document.getElementById('users');
+        const userCount = document.getElementById('userCount');
+
+        // Handle message sending
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('user-message', message);
+                messageInput.value = '';
+                messageInput.focus();
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Handle incoming messages
+        socket.on('message', (data) => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            
+            // Check if this message is from the current user
+            if (data.username === username) {
+                messageElement.classList.add('sent');
+            } else {
+                messageElement.classList.add('received');
+            }
+            
+            messageElement.innerHTML = `
+                <span class="message-user">${data.username}</span>
+                <p>${data.message}</p>
+                <span class="message-time">${data.timestamp}</span>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+
+        // Handle user connections
+        socket.on('user-connected', (username) => {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = `${username} joined the chat`;
+            messagesContainer.appendChild(notification);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+
+        socket.on('user-disconnected', (username) => {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = `${username} left the chat`;
+            messagesContainer.appendChild(notification);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+
+        // Update user list
+        socket.on('update-users', (users) => {
+            usersList.innerHTML = '';
+            userCount.textContent = users.length;
+            
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user;
+                if (user === username) {
+                    li.classList.add('current-user');
+                }
+                usersList.appendChild(li);
+            });
+        });
+
+        // Focus input on load
+        messageInput.focus();
+    </script>
+</body>
+</html>
